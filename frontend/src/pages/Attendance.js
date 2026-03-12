@@ -76,6 +76,13 @@ function Attendance() {
   const [viewEmployeeId, setViewEmployeeId] = useState("");
   const [records, setRecords] = useState([]);
 
+  // Date filter
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  // Summary
+  const [totalPresent, setTotalPresent] = useState(null);
+
   useEffect(() => {
     api.get("/employees").then((res) => setEmployees(res.data)).catch(() => {});
   }, []);
@@ -102,10 +109,25 @@ function Attendance() {
 
   const fetchRecords = async (empId) => {
     try {
-      const res = await api.get(`/attendance/${empId}`);
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      const res = await api.get(`/attendance/${empId}`, { params });
       setRecords(res.data);
     } catch {
       setRecords([]);
+    }
+  };
+
+  const fetchSummary = async (empId) => {
+    try {
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      const res = await api.get(`/attendance/${empId}/summary`, { params });
+      setTotalPresent(res.data.total_present);
+    } catch {
+      setTotalPresent(null);
     }
   };
 
@@ -113,6 +135,7 @@ function Attendance() {
     e.preventDefault();
     if (viewEmployeeId) {
       fetchRecords(viewEmployeeId);
+      fetchSummary(viewEmployeeId);
     }
   };
 
@@ -157,9 +180,21 @@ function Attendance() {
             onSelect={setViewEmployeeId}
             placeholder="Search by name, email, or ID..."
           />
+          <label>Start Date</label>
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <label>End Date</label>
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           <button type="submit" className="btn-primary">View Records</button>
         </form>
       </div>
+
+      {/* Summary */}
+      {totalPresent !== null && (
+        <div className="summary-card">
+          <span className="summary-label">Total Present Days</span>
+          <span className="summary-value">{totalPresent}</span>
+        </div>
+      )}
 
       {/* Attendance Table */}
       {records.length > 0 && (

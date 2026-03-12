@@ -519,6 +519,31 @@ body {
   margin-bottom: 16px;
 }
 
+/* ─── Summary Card ─── */
+
+.summary-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 14px 24px;
+  margin-bottom: 24px;
+}
+
+.summary-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #15803d;
+}
+
+.summary-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #15803d;
+}
+
 /* ─── Employee Search Dropdown ─── */
 
 .employee-search {

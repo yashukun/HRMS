@@ -1,7 +1,10 @@
 import os
-from fastapi import FastAPI, Depends, HTTPException, Request
+from datetime import date
+from typing import Optional
+from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from database import engine, get_db, Base
@@ -114,8 +117,40 @@ def mark_attendance(att: AttendanceCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/api/attendance/{employee_id}", response_model=list[AttendanceOut])
-def get_attendance(employee_id: int, db: Session = Depends(get_db)):
+def get_attendance(
+    employee_id: int,
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    db: Session = Depends(get_db),
+):
     emp = db.query(Employee).filter(Employee.id == employee_id).first()
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
-    return db.query(Attendance).filter(Attendance.employee_id == employee_id).order_by(Attendance.date.desc()).all()
+    q = db.query(Attendance).filter(Attendance.employee_id == employee_id)
+    if start_date:
+        q = q.filter(Attendance.date >= start_date)
+    if end_date:
+        q = q.filter(Attendance.date <= end_date)
+    return q.order_by(Attendance.date.desc()).all()
+
+
+@app.get("/api/attendance/{employee_id}/summary")
+def get_attendance_summary(
+    employee_id: int,
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    db: Session = Depends(get_db),
+):
+    emp = db.query(Employee).filter(Employee.id == employee_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    q = db.query(func.count(Attendance.id)).filter(
+        Attendance.employee_id == employee_id,
+        Attendance.status == "Present",
+    )
+    if start_date:
+        q = q.filter(Attendance.date >= start_date)
+    if end_date:
+        q = q.filter(Attendance.date <= end_date)
+    total_present = q.scalar()
+    return {"employee_id": employee_id, "total_present": total_present}
