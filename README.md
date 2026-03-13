@@ -1,6 +1,8 @@
 # HRMS – Human Resource Management System
 
-A full-stack **Human Resource Management System** built with **FastAPI**, **React**, and **PostgreSQL**, fully containerized with **Docker Compose**.
+## Project Overview
+
+HRMS is a full-stack **Human Resource Management System** that lets administrators manage employees and track daily attendance. It features a **FastAPI** backend, a **React** frontend, and a **PostgreSQL** database, all containerized with **Docker Compose**.
 
 ### Live Demo
 
@@ -9,55 +11,19 @@ A full-stack **Human Resource Management System** built with **FastAPI**, **Reac
 | **Frontend**    | https://hrms-ten-silk.vercel.app |
 | **Backend API** | https://hrms-tcl3.onrender.com   |
 
-> Frontend is deployed on **Vercel**, backend & database on **Render**.
+> Frontend is deployed on **Vercel**. Backend and database are deployed on **Render**.
 
----
+### Key Features
 
-## Table of Contents
-
-- [Live Demo](#live-demo)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Environment Variables](#environment-variables)
-  - [Run with Docker](#run-with-docker)
-  - [Run Locally (without Docker)](#run-locally-without-docker)
-- [API Reference](#api-reference)
-  - [Employees](#employees)
-  - [Attendance](#attendance)
-- [Frontend Pages](#frontend-pages)
-- [Deployment](#deployment)
-- [License](#license)
-
----
-
-## Features
-
-- **Employee Management** – Create, list, update, and delete employees
+- **Employee CRUD** – Create, list, update, and delete employee records
 - **Attendance Tracking** – Mark daily attendance (Present / Absent) per employee
 - **Attendance Summary** – View total present days with optional date-range filtering
 - **Duplicate Prevention** – Unique email constraint; one attendance record per employee per day
 - **Employee Search** – Autocomplete dropdown that filters by name, email, or ID
-- **Responsive UI** – Clean dashboard with stats, department badges, and a mobile-friendly layout
+- **Responsive UI** – Dashboard with stats cards, department badges, and mobile-friendly layout
+- **Interactive API Docs** – Auto-generated Swagger UI at `/docs`
 
----
-
-## Tech Stack
-
-| Layer          | Technology                                 |
-| -------------- | ------------------------------------------ |
-| **Backend**    | Python 3.12, FastAPI, SQLAlchemy, Pydantic |
-| **Frontend**   | React 19, React Router 7, Axios            |
-| **Database**   | PostgreSQL 16 (Alpine)                     |
-| **Packaging**  | uv (fast Python package installer)         |
-| **Containers** | Docker, Docker Compose                     |
-
----
-
-## Architecture
+### Architecture
 
 ```
 ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
@@ -66,13 +32,7 @@ A full-stack **Human Resource Management System** built with **FastAPI**, **Reac
 └──────────────┘       └──────────────┘       └──────────────┘
 ```
 
-- **Frontend** → Axios calls to `/api/*` endpoints
-- **Backend** → SQLAlchemy ORM against a Postgres database
-- All three services are orchestrated by Docker Compose
-
----
-
-## Project Structure
+### Project Structure
 
 ```
 HRMS/
@@ -110,16 +70,36 @@ HRMS/
 
 ---
 
-## Getting Started
+## Tech Stack
+
+| Layer          | Technology                                 |
+| -------------- | ------------------------------------------ |
+| **Backend**    | Python 3.12, FastAPI, SQLAlchemy, Pydantic |
+| **Frontend**   | React 19, React Router 7, Axios            |
+| **Database**   | PostgreSQL 16 (Alpine)                     |
+| **Packaging**  | uv (fast Python package installer)         |
+| **Containers** | Docker, Docker Compose                     |
+| **Deployment** | Vercel (frontend), Render (backend + DB)   |
+
+---
+
+## Steps to Run the Project Locally
 
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) & Docker Compose **v2+**
-- _(Optional for local dev)_ Python 3.12+, Node.js 18+, PostgreSQL 16
+- _(Optional, for running without Docker)_ Python 3.12+, Node.js 18+, PostgreSQL 16
 
-### Environment Variables
+### 1. Clone the Repository
 
-Create a `.env` file in the project root:
+```bash
+git clone https://github.com/yashukun/HRMS.git
+cd HRMS
+```
+
+### 2. Create a `.env` File
+
+Create a `.env` file in the project root with the following variables:
 
 ```env
 # ── Database ──
@@ -135,18 +115,11 @@ ALLOWED_ORIGINS=http://localhost:3000
 REACT_APP_API_URL=http://localhost:8000/api
 ```
 
-> **Note:** The `DATABASE_URL` host is `db` (Docker service name). For local development, replace it with `localhost` and adjust the port if needed.
+> **Note:** The `DATABASE_URL` host is `db` (the Docker service name). For local development without Docker, change it to `localhost` and adjust the port.
 
-### Run with Docker
+### 3. Build & Start (Docker)
 
 ```bash
-# Clone the repository
-git clone https://github.com/yashukun/HRMS.git
-cd HRMS
-
-# Create your .env file (see above)
-
-# Build & start all services
 docker compose up --build
 ```
 
@@ -157,19 +130,14 @@ docker compose up --build
 | API Docs   | http://localhost:8000/docs |
 | PostgreSQL | `localhost:5433`           |
 
-To stop everything:
+To stop:
 
 ```bash
-docker compose down
+docker compose down          # keep data
+docker compose down -v       # remove data volume too
 ```
 
-To stop **and** remove the database volume:
-
-```bash
-docker compose down -v
-```
-
-### Run Locally (without Docker)
+### 3 (alt). Run Without Docker
 
 **Backend:**
 
@@ -177,7 +145,7 @@ docker compose down -v
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt        # or: uv pip install -r requirements.txt
-export DATABASE_URL=postgresql://yash@localhost:5432/hrms
+export DATABASE_URL=postgresql://<user>@localhost:5432/hrms
 uvicorn main:app --reload --port 8000
 ```
 
@@ -191,86 +159,15 @@ npm start          # runs on http://localhost:3000
 
 ---
 
-## API Reference
+## Assumptions & Limitations
 
-Base URL: `http://localhost:8000`
-
-### Employees
-
-| Method   | Endpoint              | Description                  |
-| -------- | --------------------- | ---------------------------- |
-| `POST`   | `/api/employees`      | Create a new employee        |
-| `GET`    | `/api/employees`      | List all employees           |
-| `PUT`    | `/api/employees/{id}` | Update employee (partial)    |
-| `DELETE` | `/api/employees/{id}` | Delete employee + attendance |
-
-**Create / Update body:**
-
-```json
-{
-  "full_name": "Jane Doe",
-  "email": "jane@example.com",
-  "department": "Engineering"
-}
-```
-
-### Attendance
-
-| Method | Endpoint                                | Description                          |
-| ------ | --------------------------------------- | ------------------------------------ |
-| `POST` | `/api/attendance`                       | Mark attendance for a date           |
-| `GET`  | `/api/attendance/{employee_id}`         | List records (optional date filters) |
-| `GET`  | `/api/attendance/{employee_id}/summary` | Count of present days                |
-
-**Query parameters** (GET endpoints):
-
-| Parameter    | Type   | Description            |
-| ------------ | ------ | ---------------------- |
-| `start_date` | `date` | Filter from this date  |
-| `end_date`   | `date` | Filter up to this date |
-
-**Mark attendance body:**
-
-```json
-{
-  "employee_id": 1,
-  "date": "2026-03-13",
-  "status": "Present"
-}
-```
-
-> Interactive API docs are available at **http://localhost:8000/docs** (Swagger UI).
-
----
-
-## Frontend Pages
-
-| Page           | Route         | Description                                                  |
-| -------------- | ------------- | ------------------------------------------------------------ |
-| **Dashboard**  | `/`           | Welcome card, employee count, department count, today's date |
-| **Employees**  | `/employees`  | Add / delete employees; expand rows to view attendance       |
-| **Attendance** | `/attendance` | Mark attendance; search & filter records; view summary       |
-| **Login**      | `/login`      | Admin credential form (wired but auth not yet enforced)      |
-
----
-
-## Deployment
-
-The application is deployed across two platforms:
-
-| Component           | Platform   | URL                              |
-| ------------------- | ---------- | -------------------------------- |
-| Frontend (React)    | **Vercel** | https://hrms-ten-silk.vercel.app |
-| Backend (FastAPI)   | **Render** | https://hrms-tcl3.onrender.com   |
-| Database (Postgres) | **Render** | Managed PostgreSQL on Render     |
-
-- **Vercel** auto-deploys the `frontend/` directory on every push to `main`.
-- **Render** hosts the FastAPI backend as a Web Service and provisions a managed PostgreSQL database.
-
-> **Note:** Render free-tier services may spin down after inactivity. The first request after idle may take ~30 seconds while the service restarts.
-
----
-
-## License
-
-This project is open-source and available under the [MIT License](LICENSE).
+| #   | Item                                      | Details                                                                                                                                                                                                      |
+| --- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **Single admin role**                     | There is no role-based access control. The app assumes a single admin user. The Login page is wired but authentication is not yet enforced on API routes.                                                    |
+| 2   | **No password hashing / JWT enforcement** | The `/api/login` endpoint and token schemas exist in code, but the backend does not currently issue or validate JWT tokens. All API routes are publicly accessible.                                          |
+| 3   | **Auto-created tables**                   | Database tables are created automatically on startup via `Base.metadata.create_all()`. This is fine for development but should be replaced with a migration tool like **Alembic** in production.             |
+| 4   | **Unpinned dependencies**                 | `requirements.txt` lists packages without version pins (e.g. `fastapi` instead of `fastapi==0.115.0`). Builds are reproducible via Docker layer caching, but pinning versions is recommended for production. |
+| 5   | **Render cold starts**                    | The backend is deployed on Render's free tier. After ~15 minutes of inactivity the service spins down, so the first request may take ~30 seconds to respond.                                                 |
+| 6   | **No pagination**                         | The employee list and attendance records endpoints return all rows. For large datasets, server-side pagination should be added.                                                                              |
+| 7   | **Attendance is date-only**               | The system tracks one status per employee per day (Present / Absent). It does not record clock-in / clock-out times.                                                                                         |
+| 8   | **No edit for attendance**                | Once attendance is marked for a date, it cannot be updated or deleted through the UI or API.                                                                                                                 |
