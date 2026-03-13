@@ -1,16 +1,28 @@
+/**
+ * Employees.js – Employee management page.
+ *
+ * Features:
+ *  - Add a new employee (form at the top)
+ *  - View all employees in a table
+ *  - Expand a row to view that employee’s attendance inline
+ *  - Delete an employee (with confirmation)
+ */
+
 import React, { useState, useEffect } from "react";
 import api from "../api";
 
 function Employees() {
-  const [employees, setEmployees] = useState([]);
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [department, setDepartment] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [expandedId, setExpandedId] = useState(null);
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  // --- State ---
+  const [employees, setEmployees] = useState([]);        // all employees
+  const [fullName, setFullName] = useState("");           // form: name
+  const [email, setEmail] = useState("");                 // form: email
+  const [department, setDepartment] = useState("");       // form: department
+  const [message, setMessage] = useState("");             // success banner
+  const [error, setError] = useState("");                 // error banner
+  const [expandedId, setExpandedId] = useState(null);     // expanded row ID
+  const [attendanceRecords, setAttendanceRecords] = useState([]); // inline attendance
 
+  /** Fetch the full employee list from the API. */
   const fetchEmployees = async () => {
     try {
       const res = await api.get("/employees");
@@ -24,6 +36,7 @@ function Employees() {
     fetchEmployees();
   }, []);
 
+  /** Handle the "Add Employee" form submission. */
   const handleCreate = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -44,6 +57,7 @@ function Employees() {
     }
   };
 
+  /** Toggle the inline attendance panel for a given employee. */
   const toggleAttendance = async (empId) => {
     if (expandedId === empId) {
       setExpandedId(null);
@@ -60,6 +74,7 @@ function Employees() {
     }
   };
 
+  /** Delete an employee after user confirmation. */
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this employee?")) return;
     try {

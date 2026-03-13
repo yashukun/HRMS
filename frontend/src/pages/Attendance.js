@@ -1,11 +1,27 @@
+/**
+ * Attendance.js – Attendance management page.
+ *
+ * Contains two sections:
+ *  1. Mark Attendance – select an employee, pick a date & status, submit.
+ *  2. View Attendance – search for an employee, optionally filter by date
+ *     range, and see their records + a "total present" summary.
+ *
+ * Also exports the reusable <EmployeeSearch /> autocomplete widget.
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api";
 
+/**
+ * EmployeeSearch – Autocomplete dropdown that filters employees
+ * by name, email, or ID as the user types.
+ */
 function EmployeeSearch({ employees, selectedId, onSelect, placeholder }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClick = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -65,28 +81,31 @@ function EmployeeSearch({ employees, selectedId, onSelect, placeholder }) {
 }
 
 function Attendance() {
-  const [employees, setEmployees] = useState([]);
-  const [employeeId, setEmployeeId] = useState("");
-  const [date, setDate] = useState("");
-  const [status, setStatus] = useState("Present");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  // --- Mark Attendance state ---
+  const [employees, setEmployees] = useState([]);       // dropdown options
+  const [employeeId, setEmployeeId] = useState("");     // selected employee
+  const [date, setDate] = useState("");                 // selected date
+  const [status, setStatus] = useState("Present");      // Present | Absent
+  const [message, setMessage] = useState("");           // success banner
+  const [error, setError] = useState("");               // error banner
 
-  // View attendance
+  // --- View Attendance state ---
   const [viewEmployeeId, setViewEmployeeId] = useState("");
   const [records, setRecords] = useState([]);
 
-  // Date filter
+  // --- Date range filter ---
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Summary
+  // --- Summary ---
   const [totalPresent, setTotalPresent] = useState(null);
 
+  // Load employee list once on mount
   useEffect(() => {
     api.get("/employees").then((res) => setEmployees(res.data)).catch(() => {});
   }, []);
 
+  /** Submit the "Mark Attendance" form. */
   const handleMark = async (e) => {
     e.preventDefault();
     if (!employeeId) { setError("Please select an employee"); return; }
@@ -107,6 +126,7 @@ function Attendance() {
     }
   };
 
+  /** Fetch attendance records (with optional date filters). */
   const fetchRecords = async (empId) => {
     try {
       const params = {};
@@ -119,6 +139,7 @@ function Attendance() {
     }
   };
 
+  /** Fetch the attendance summary (total present days). */
   const fetchSummary = async (empId) => {
     try {
       const params = {};
@@ -131,6 +152,7 @@ function Attendance() {
     }
   };
 
+  /** Handle the "View Records" form submission. */
   const handleView = (e) => {
     e.preventDefault();
     if (viewEmployeeId) {

@@ -1,9 +1,17 @@
+/**
+ * Dashboard.js – Home page showing a high-level overview.
+ *
+ * Fetches the full employee list on mount and derives
+ * summary statistics (total count, unique departments).
+ */
+
 import React, { useState, useEffect } from "react";
 import api from "../api";
 
 function Dashboard() {
   const [stats, setStats] = useState({ total: 0, departments: [] });
 
+  // Fetch employees once on mount to compute dashboard stats
   useEffect(() => {
     api.get("/employees").then((res) => {
       const emps = res.data;

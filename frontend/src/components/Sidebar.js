@@ -1,3 +1,9 @@
+/**
+ * Sidebar.js – Fixed left-hand navigation sidebar.
+ *
+ * Uses <NavLink> so the active route gets highlighted automatically.
+ */
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 

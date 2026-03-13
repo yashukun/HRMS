@@ -1,3 +1,10 @@
+/**
+ * Login.js – Admin login page.
+ *
+ * Submits credentials to POST /api/login and passes the returned
+ * access token to the parent via the `onLogin` callback.
+ */
+
 import React, { useState } from "react";
 import api from "../api";
 
@@ -6,6 +13,7 @@ function Login({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  /** Submit login credentials to the backend. */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
