@@ -13,6 +13,7 @@ from typing import Optional
 from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -37,6 +38,27 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
+    )
+
+
+# ── Validation Error Handler ──────────────────────────────────────────────────
+# Returns user-friendly field-level error messages instead of Pydantic's raw output
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = []
+    for err in exc.errors():
+        # Extract the field name from the location tuple (e.g. ('body', 'email'))
+        field = err.get("loc", [""])[-1]
+        msg = err.get("msg", "Invalid value")
+        # Strip Pydantic prefix like "Value error, "
+        if msg.lower().startswith("value error, "):
+            msg = msg[len("value error, "):]
+        errors.append({"field": field, "message": msg})
+    # Return the first error as `detail` for simple clients, plus full list
+    first_msg = errors[0]["message"] if errors else "Validation error"
+    return JSONResponse(
+        status_code=422,
+        content={"detail": first_msg, "errors": errors},
     )
 
 

@@ -36,11 +36,56 @@ function Employees() {
     fetchEmployees();
   }, []);
 
+  // --- Field-level validation errors ---
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  /** Validate form fields client-side. Returns true if valid. */
+  const validateForm = () => {
+    const errs = {};
+    const nameRe = /^[A-Za-z\s'\-]+$/;
+    const deptRe = /^[A-Za-z\s&\-]+$/;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Full name
+    const trimmedName = fullName.trim();
+    if (!trimmedName) {
+      errs.fullName = "Full name is required";
+    } else if (trimmedName.length < 2) {
+      errs.fullName = "Full name must be at least 2 characters";
+    } else if (!nameRe.test(trimmedName)) {
+      errs.fullName = "Full name must contain only letters, spaces, hyphens, or apostrophes";
+    }
+
+    // Email
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      errs.email = "Email is required";
+    } else if (!emailRe.test(trimmedEmail)) {
+      errs.email = "Please enter a valid email address (e.g. user@example.com)";
+    }
+
+    // Department
+    const trimmedDept = department.trim();
+    if (!trimmedDept) {
+      errs.department = "Department is required";
+    } else if (trimmedDept.length < 2) {
+      errs.department = "Department must be at least 2 characters";
+    } else if (!deptRe.test(trimmedDept)) {
+      errs.department = "Department must contain only letters, spaces, hyphens, or '&'";
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   /** Handle the "Add Employee" form submission. */
   const handleCreate = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
+
+    // Run client-side validation first
+    if (!validateForm()) return;
     try {
       await api.post("/employees", {
         full_name: fullName,
@@ -50,10 +95,23 @@ function Employees() {
       setFullName("");
       setEmail("");
       setDepartment("");
+      setFieldErrors({});
       setMessage("Employee created successfully");
       await fetchEmployees();
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to create employee");
+      // Handle backend validation errors (field-level)
+      const data = err.response?.data;
+      if (data?.errors && Array.isArray(data.errors)) {
+        const backendErrs = {};
+        for (const e of data.errors) {
+          const key = e.field === "full_name" ? "fullName" : e.field;
+          backendErrs[key] = e.message;
+        }
+        setFieldErrors(backendErrs);
+        setError(data.detail || "Please fix the errors below");
+      } else {
+        setError(data?.detail || "Failed to create employee");
+      }
     }
   };
 
@@ -97,13 +155,35 @@ function Employees() {
         <h3>Add Employee</h3>
         {message && <p className="success-msg">{message}</p>}
         {error && <p className="error-msg">{error}</p>}
-        <form onSubmit={handleCreate}>
+        <form onSubmit={handleCreate} noValidate>
           <label>Full Name</label>
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+          <input
+            value={fullName}
+            onChange={(e) => { setFullName(e.target.value); setFieldErrors((p) => ({ ...p, fullName: undefined })); }}
+            placeholder="e.g. Jane Doe"
+            className={fieldErrors.fullName ? "input-error" : ""}
+          />
+          {fieldErrors.fullName && <p className="field-error">{fieldErrors.fullName}</p>}
+
           <label>Email Address</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })); }}
+            placeholder="e.g. jane@example.com"
+            className={fieldErrors.email ? "input-error" : ""}
+          />
+          {fieldErrors.email && <p className="field-error">{fieldErrors.email}</p>}
+
           <label>Department</label>
-          <input value={department} onChange={(e) => setDepartment(e.target.value)} required />
+          <input
+            value={department}
+            onChange={(e) => { setDepartment(e.target.value); setFieldErrors((p) => ({ ...p, department: undefined })); }}
+            placeholder="e.g. Engineering"
+            className={fieldErrors.department ? "input-error" : ""}
+          />
+          {fieldErrors.department && <p className="field-error">{fieldErrors.department}</p>}
+
           <button type="submit" className="btn-primary">Add Employee</button>
         </form>
       </div>
